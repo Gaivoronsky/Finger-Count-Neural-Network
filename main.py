@@ -1,19 +1,14 @@
 from keras.models import load_model
 from keras.preprocessing.image import ImageDataGenerator
 import cv2
+from keras.preprocessing import image
+from keras.applications.vgg19 import preprocess_input
 from model import predicting_model, train_and_check_model
 from write_dataset import write_dataset
+import numpy as np
 
 
 def use_code():
-    test_dir = 'pred'
-    img_width, img_height = 224, 224
-    datagen = ImageDataGenerator(rescale=1. / 255)
-
-    test_generator = datagen.flow_from_directory(
-        test_dir,
-        target_size=(img_width, img_height))
-
     model = load_model('fingers_neural.h5')
 
     cap = cv2.VideoCapture(0)
@@ -27,11 +22,17 @@ def use_code():
         if ret == True:
 
             cv2.imshow('frame', frame)
-            cv2.imwrite("pred\\1\\test" + ".jpg", frame)
+            cv2.imwrite("pred.jpg", frame)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
             if i % 5 == 0:
-                prediction = model.predict(test_generator)
+                img = image.load_img('pred.jpg',
+                                     target_size=(224, 224))
+                x = image.img_to_array(img)
+                x = np.expand_dims(x, axis=0)
+                x = preprocess_input(x)
+
+                prediction = model.predict(x)
                 kol = str(prediction.argmax())
         else:
             break
